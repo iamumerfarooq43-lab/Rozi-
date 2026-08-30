@@ -15,6 +15,7 @@ import {
   LogOut,
   Gauge,
   Sparkles,
+  HelpCircle,
 } from "lucide-react";
 import useAuthStore from "@/store/authStore";
 
@@ -27,6 +28,7 @@ const NAV_LINKS = [
   { to: "/fuel", label: "Fuel Logs", icon: Fuel },
   { to: "/assistant", label: "AI Assistant", icon: Sparkles },
   { to: "/profile", label: "Profile", icon: User },
+  { to: "/help", label: "Help & Support", icon: HelpCircle },
 ];
 
 export default function Sidebar() {

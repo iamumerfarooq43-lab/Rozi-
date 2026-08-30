@@ -101,8 +101,8 @@ export default function Footer() {
 
   return (
     <footer
-      className="h-9 flex-shrink-0 border-t border-zinc-200 bg-white px-6
-        flex items-center justify-between text-xs text-zinc-500"
+      className="h-9 flex-shrink-0 border-t border-zinc-200/90 bg-zinc-100/95 px-6
+        flex items-center justify-between text-xs text-zinc-600 font-medium"
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -115,8 +115,8 @@ export default function Footer() {
           <Content />
         </motion.div>
       </AnimatePresence>
-      <span className="text-zinc-300 hidden sm:inline font-medium tracking-wide">
-        Rozi
+      <span className="text-zinc-400 hidden sm:inline font-semibold tracking-wide text-[11px]">
+        Rozi Platform
       </span>
     </footer>
   );

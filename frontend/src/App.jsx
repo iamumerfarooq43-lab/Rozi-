@@ -14,6 +14,7 @@ import HistoryPage from "@/pages/history/HistoryPage";
 import AnalyticsPage from "@/pages/analytics/AnalyticsPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
 import AssistantPage from "@/pages/assistant/AssistantPage";
+import HelpPage from "@/pages/help/HelpPage";
 
 function App() {
   const initTheme = useThemeStore((state) => state.initTheme);
@@ -119,6 +120,17 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <AssistantPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/help"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <HelpPage />
               </AppLayout>
             </ProtectedRoute>
           }

@@ -68,6 +68,11 @@ Gig economy drivers and delivery captains frequently juggle **3 to 5 apps simult
 - **Cloudinary Avatar Uploads** with automatic image optimization & old file deletion.
 - **Firebase Cloud Messaging (FCM)** for automated weekly earnings notifications.
 
+### 6. 🎧 Dedicated Captain Help & Support Center
+- Direct email ticketing with one-tap copy & pre-filled mail client launch.
+- Interactive FAQ accordion covering calculations, fuel efficiency, and voice assistance.
+- Extensible roadmap cards for upcoming WhatsApp captain community and helpline channels.
+
 ---
 
 ## 🏗️ System Architecture

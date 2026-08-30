@@ -312,7 +312,7 @@ export default function FloatingAiBot() {
   if (isAssistantPage) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
+    <div className="fixed bottom-14 right-6 z-50 flex flex-col items-end font-sans">
       {/* Floating Chat Box Window - Matching Sidebar Theme #1e2d40 */}
       <AnimatePresence>
         {isOpen && (
