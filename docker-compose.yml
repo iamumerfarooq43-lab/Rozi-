@@ -1,0 +1,36 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "3307:3306"
+    volumes:
+      - rozi_mysql_data:/var/lib/mysql
+      - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=mysql
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - mysql
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5000/api
+        VITE_GOOGLE_CLIENT_ID: 893146844850-lt8tbjscvfbbmh7kedbvj10kan86pk3q.apps.googleusercontent.com
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  rozi_mysql_data:
