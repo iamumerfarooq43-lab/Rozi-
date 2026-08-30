@@ -14,12 +14,32 @@ import {
   Fuel,
   Wallet,
   PieChart,
+  Mic,
+  MicOff,
+  Smile,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/services/api";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { playSound } from "@/utils/sound";
+
+const CAPTAIN_EMOJIS = [
+  { emoji: "🚗", label: "Car" },
+  { emoji: "🛵", label: "Bike" },
+  { emoji: "⛽", label: "Fuel" },
+  { emoji: "💰", label: "Earnings" },
+  { emoji: "💵", label: "Cash" },
+  { emoji: "📈", label: "Profit" },
+  { emoji: "📉", label: "Expense" },
+  { emoji: "📊", label: "Analytics" },
+  { emoji: "⏱️", label: "Hours" },
+  { emoji: "📍", label: "Location" },
+  { emoji: "🛠️", label: "Repairs" },
+  { emoji: "👍", label: "OK" },
+  { emoji: "🤖", label: "Bot" },
+  { emoji: "❓", label: "Help" },
+];
 
 const QUICK_CARDS = [
   {
@@ -164,7 +184,81 @@ export default function AssistantPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copiedIdx, setCopiedIdx] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const bottomRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const toggleVoiceInput = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error("Voice input is not supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        playSound("pop");
+        toast.success("Listening... Speak now 🎙️", { id: "voice-listen" });
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setInput((prev) => (prev ? `${prev.trim()} ${transcript}` : transcript));
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+        if (event.error === "not-allowed") {
+          toast.error("Microphone access was denied. Please check browser settings.");
+        } else if (event.error !== "no-speech") {
+          toast.error("Could not capture speech. Please try again.");
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error("Voice recognition start error:", err);
+      setIsListening(false);
+      toast.error("Could not start voice recognition.");
+    }
+  };
+
+  const handleEmojiSelect = (emoji) => {
+    setInput((prev) => `${prev}${emoji} `);
+    setShowEmojiPicker(false);
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -565,32 +659,127 @@ export default function AssistantPage() {
         </div>
 
         {/* Form Footer */}
-        <form
-          onSubmit={handleSubmit}
-          className="flex items-center gap-2 border-t border-zinc-200/80 p-3 bg-zinc-50/50"
-        >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your earnings, fuel, or net profit..."
-            className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-zinc-200
-              text-sm text-zinc-800 placeholder:text-zinc-400
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500
-              transition-all shadow-xs"
-          />
-          <motion.button
-            type="submit"
-            disabled={loading || !input.trim()}
-            whileHover={!loading && input.trim() ? { scale: 1.05 } : {}}
-            whileTap={!loading && input.trim() ? { scale: 0.95 } : {}}
-            className="w-10 h-10 flex items-center justify-center rounded-xl
-              bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40
-              disabled:cursor-not-allowed text-white transition-colors flex-shrink-0 shadow-xs"
+        <div className="relative border-t border-zinc-200/80 p-3 bg-zinc-50/70">
+          {/* Emoji Quick Picker Popover */}
+          <AnimatePresence>
+            {showEmojiPicker && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute bottom-full mb-2 left-3 z-30 bg-white border border-zinc-200/90 rounded-2xl p-2.5 shadow-xl shadow-zinc-900/10 w-72"
+              >
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100 px-1">
+                  <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                    Captain Emojis
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker(false)}
+                    className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-7 gap-1.5">
+                  {CAPTAIN_EMOJIS.map((item) => (
+                    <button
+                      key={item.emoji}
+                      type="button"
+                      onClick={() => handleEmojiSelect(item.emoji)}
+                      title={item.label}
+                      className="w-8 h-8 rounded-lg hover:bg-indigo-50 flex items-center justify-center text-lg transition-transform hover:scale-125 active:scale-95"
+                    >
+                      {item.emoji}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <form
+            onSubmit={handleSubmit}
+            className="flex items-center gap-2"
           >
-            <Send className="w-4 h-4" />
-          </motion.button>
-        </form>
+            {/* Emoji Button */}
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              title="Add Emoji"
+              className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors flex-shrink-0 ${
+                showEmojiPicker
+                  ? "bg-indigo-50 border-indigo-300 text-indigo-600"
+                  : "bg-white border-zinc-200 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
+              }`}
+            >
+              <Smile className="w-5 h-5" />
+            </button>
+
+            {/* Voice Input Button */}
+            <motion.button
+              type="button"
+              onClick={toggleVoiceInput}
+              title={isListening ? "Listening... Click to stop" : "Voice Input (Speech-to-Text)"}
+              animate={
+                isListening
+                  ? {
+                      scale: [1, 1.08, 1],
+                      boxShadow: [
+                        "0 0 0 0 rgba(239, 68, 68, 0.4)",
+                        "0 0 0 8px rgba(239, 68, 68, 0)",
+                      ],
+                    }
+                  : {}
+              }
+              transition={
+                isListening
+                  ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+                  : {}
+              }
+              className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors flex-shrink-0 relative ${
+                isListening
+                  ? "bg-rose-500 border-rose-600 text-white shadow-md shadow-rose-500/30"
+                  : "bg-white border-zinc-200 text-zinc-500 hover:text-indigo-600 hover:bg-zinc-100"
+              }`}
+            >
+              {isListening ? (
+                <MicOff className="w-5 h-5 animate-pulse" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
+            </motion.button>
+
+            {/* Text Input */}
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={
+                  isListening
+                    ? "Listening to your voice..."
+                    : "Ask about your earnings, fuel, or net profit..."
+                }
+                className={`w-full px-4 py-2.5 rounded-xl bg-white border text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all shadow-xs ${
+                  isListening ? "border-rose-300 ring-2 ring-rose-400/20" : "border-zinc-200"
+                }`}
+              />
+            </div>
+
+            {/* Send Button */}
+            <motion.button
+              type="submit"
+              disabled={loading || !input.trim()}
+              whileHover={!loading && input.trim() ? { scale: 1.05 } : {}}
+              whileTap={!loading && input.trim() ? { scale: 0.95 } : {}}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors flex-shrink-0 shadow-xs"
+            >
+              <Send className="w-4 h-4" />
+            </motion.button>
+          </form>
+        </div>
       </div>
     </div>
   );
