@@ -101,8 +101,8 @@ export default function Footer() {
 
   return (
     <footer
-      className="h-9 flex-shrink-0 border-t border-zinc-200/90 bg-zinc-100/95 px-6
-        flex items-center justify-between text-xs text-zinc-600 font-medium"
+      className="hidden md:flex h-9 flex-shrink-0 border-t border-zinc-200/90 bg-zinc-100/95 px-6
+        items-center justify-between text-xs text-zinc-600 font-medium overflow-hidden"
     >
       <AnimatePresence mode="wait">
         <motion.div

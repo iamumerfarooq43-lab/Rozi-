@@ -1,15 +1,16 @@
+import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import Footer from "./Footer";
 import FloatingAiBot from "./FloatingAiBot";
-
-import { useEffect } from "react";
+import MobileBottomNav from "./MobileBottomNav";
 import { useQueryClient } from "@tanstack/react-query";
 import { requestNotificationPermission } from "../../utils/requestNotificationPermission";
 import { messaging, onMessage } from "../../firebase.js";
 
 export default function AppLayout({ children }) {
   const queryClient = useQueryClient();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onMessage(messaging, (payload) => {
@@ -30,26 +31,34 @@ export default function AppLayout({ children }) {
     requestNotificationPermission();
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("Foreground message:", payload);
-      // refresh the notifications query so the bell badge updates immediately
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    });
-
-    return () => unsubscribe();
-  }, [queryClient]);
-
   return (
-    <div className="flex h-screen bg-zinc-50 overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <div className="flex h-screen bg-zinc-50 overflow-hidden font-sans">
+      {/* Sidebar: Handles both desktop layout and mobile slide-over drawer */}
+      <Sidebar
+        mobileOpen={mobileSidebarOpen}
+        setMobileOpen={setMobileSidebarOpen}
+      />
+
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <Topbar
+          onToggleMobileSidebar={() => setMobileSidebarOpen((prev) => !prev)}
+        />
+        <main className="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-6 pb-18 md:pb-6">
+          {children}
+        </main>
         <Footer />
       </div>
+
+      {/* Floating AI Bot: available across screens */}
       <FloatingAiBot />
+
+      {/* Mobile Bottom Navigation Bar: quick one-tap thumb navigation on smartphones */}
+      <MobileBottomNav
+        onOpenDrawer={() => setMobileSidebarOpen(true)}
+      />
     </div>
   );
 }
+
+
 

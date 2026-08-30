@@ -312,7 +312,7 @@ export default function FloatingAiBot() {
   if (isAssistantPage) return null;
 
   return (
-    <div className="fixed bottom-14 right-6 z-50 flex flex-col items-end font-sans">
+    <div className="fixed bottom-18 sm:bottom-14 right-3 sm:right-6 z-50 flex flex-col items-end font-sans">
       {/* Floating Chat Box Window - Matching Sidebar Theme #1e2d40 */}
       <AnimatePresence>
         {isOpen && (
@@ -321,7 +321,7 @@ export default function FloatingAiBot() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="mb-4 w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-8rem)]
+            className="mb-3 sm:mb-4 w-[calc(100vw-1.5rem)] sm:w-[420px] max-w-[420px] h-[480px] sm:h-[520px] max-h-[calc(100vh-6rem)]
               bg-[#1e2d40] text-white border border-white/10 rounded-2xl shadow-xl shadow-black/40
               flex flex-col overflow-hidden relative"
           >

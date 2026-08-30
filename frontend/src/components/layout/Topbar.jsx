@@ -14,6 +14,8 @@ import {
   Clock,
   Volume2,
   VolumeX,
+  Menu,
+  Gauge,
 } from "lucide-react";
 import useAuthStore from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
@@ -263,7 +265,7 @@ function NotificationModal({ notification, onClose }) {
   );
 }
 
-export default function Topbar() {
+export default function Topbar({ onToggleMobileSidebar }) {
   const { user, logout, setUser } = useAuthStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -317,9 +319,17 @@ export default function Topbar() {
     prevUnreadRef.current = unreadCount;
   }, [notifData, unreadCount]);
 
-  const handleMarkAllRead = async () => {
-    await markAllNotificationsRead();
-    queryClient.invalidateQueries({ queryKey: ["notifications"] });
+  const markAllMutation = useMutation({
+    mutationFn: markAllNotificationsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["notifications"]);
+      toast.success("All notifications marked as read");
+    },
+    onError: () => toast.error("Failed to mark all as read"),
+  });
+
+  const handleMarkAllRead = () => {
+    markAllMutation.mutate();
   };
 
   // ─── Avatar upload mutation ───
@@ -374,18 +384,6 @@ export default function Topbar() {
     year: "numeric",
   });
 
-  useEffect(() => {
-    if (notifOpen) {
-      setNotifCoords({ top: 56, right: 24 });
-    }
-  }, [notifOpen]);
-
-  useEffect(() => {
-    if (dropdownOpen) {
-      setUserCoords({ top: 56, right: 24 });
-    }
-  }, [dropdownOpen]);
-
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -395,27 +393,48 @@ export default function Topbar() {
     <>
       <header
         className="relative h-14 bg-white border-b border-zinc-200 flex items-center
-        justify-between px-6 flex-shrink-0 z-40"
+        justify-between px-3 sm:px-6 flex-shrink-0 z-40"
       >
-        {/* Left — Live Clock */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+        {/* Left — Hamburger button on mobile OR Live Clock on desktop */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            type="button"
+            onClick={onToggleMobileSidebar}
+            className="md:hidden p-2 -ml-1 rounded-xl text-zinc-700 hover:text-indigo-600 hover:bg-zinc-100 transition-colors focus:outline-none flex items-center justify-center cursor-pointer"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          {/* Mobile Brand Logo (Beside Hamburger Button) */}
+          <div className="flex items-center gap-2 md:hidden">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
+              <Gauge className="w-3.5 h-3.5" />
+            </div>
+            <span className="font-bold text-sm tracking-tight text-zinc-900">
+              Rozi
+            </span>
+          </div>
+
+          {/* Desktop Live Clock (Hidden on Mobile) */}
+          <div className="hidden md:flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-sm font-semibold text-zinc-800 tabular-nums">
               {formattedTime}
             </span>
+            <span className="text-zinc-300 mx-1">|</span>
+            <span className="text-sm text-zinc-500">{formattedDate}</span>
           </div>
-          <span className="text-zinc-300">|</span>
-          <span className="text-sm text-zinc-500">{formattedDate}</span>
         </div>
 
-        {/* Center — Animated app name (Rozi / روزی) */}
-        <div className="absolute left-1/2 -translate-x-1/2">
+        {/* Center — Animated app name (Only on md+ tablets/desktops to prevent any mobile collision) */}
+        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 pointer-events-none">
           <AnimatedBrand />
         </div>
 
         {/* Right — Bell + User dropdown */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Notification Bell */}
           <div className="relative">
             <button
@@ -423,7 +442,7 @@ export default function Topbar() {
                 playSound("pop");
                 setNotifOpen(!notifOpen);
               }}
-              className="relative p-2.5 rounded-xl hover:bg-zinc-100/80 transition-all duration-150 active:scale-95 cursor-pointer group"
+              className="relative p-2 rounded-xl hover:bg-zinc-100/80 transition-all duration-150 active:scale-95 cursor-pointer group"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5 text-zinc-600 group-hover:text-indigo-600 transition-colors" />
@@ -440,7 +459,7 @@ export default function Topbar() {
                   className="fixed inset-0 z-40"
                   onClick={() => setNotifOpen(false)}
                 />
-                <div className="fixed right-6 top-14 w-84 bg-white border border-zinc-200/90 rounded-2xl shadow-2xl z-50 overflow-hidden font-sans">
+                <div className="fixed right-2 sm:right-6 top-14 w-[calc(100vw-1rem)] sm:w-84 max-w-sm bg-white border border-zinc-200/90 rounded-2xl shadow-2xl z-50 overflow-hidden font-sans">
                   {/* Top gradient bar */}
                   <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
 
